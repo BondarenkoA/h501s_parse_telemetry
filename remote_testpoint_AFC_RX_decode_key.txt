@@ -1,0 +1,179 @@
+
+
+
+
+The video recording to the microSDcard in the drone is signalled by text added to the video, and send with the video over the 5 GHz link.
+So it basically is already in the HUD at the top, if recording is running it shows the duration.
+
+Baudrate = 57600,
+
+Normally AFC_TX is high,
+a new field starting with 0xff is signaled by an about 5 byte 0xff 0x00 0xff sequence on AFC_TX
+
+Commands found
+
+
+FF 09 43 09 00 00 01 00 47 01 51 5C 
+FF 09
+43 09
+00 00	-> roll				-> reverse Endian	-> 00 00	-> R 0
+01 00	-> pitch			-> reverse Endian	-> 00 01 	-> P 1
+47 01 	-> yaw				-> reverse Endian	-> 01 47 	-> H 327 
+51		-> battery voltage						-> dec 81	-> 8.1V
+5C 
+
+
+
+FF 0B
+41 09
+C5 83 BD 1F		latitude	-> reverse Endian 1FBD83C5 ->  532513733 ->  53.2513733
+98 6D 56 03		longitude	-> reverse Endian 03566D98 ->   55995800 ->   5.5995800
+05 				number of sats	-> 5
+09
+
+
+FF 0C
+16 01 09
+08
+20 20 20 20 30 2E 30 25
+			0  .  0  %		airspeed m/s
+1D 
+
+
+FF 0C
+16 04 05
+08
+20 20 20 20 20 5F 30 6D
+               _  0  m		distance m
+3D
+
+
+FF 0C
+16 00 03
+08
+20 20 20 5E 30 2E 30 6D
+         ^  0  .  0  m		altitude m
+20 
+
+
+FF 0D
+15 00 00 23
+08
+20 50 48 4F 54 4F 20 20
+   P  H  O  T  O  			-> photo button pressed
+52  
+
+
+
+FF 11
+15 00 00 23
+0C 
+48 35 30 31 53 20 56 31 2E 32 2E 39
+H  5  0  1  S     V   1 .  2  .  9		->	on power up only
+59
+
+
+FF 11
+15 00 00 23
+0C
+20 46 4F 4C 4C 4F 57 20 4F 4E 20 20
+   F  O  L  L  O  W     O  N 			-> follow me, right stick pressed, toggle
+2A
+
+FF 11
+15 00 00 25
+0C
+20 46 4F 4C 4C 4F 57 20 4F 46 46 20
+   F  O  L  L  O  W     O  F  F			-> follow me, right stick pressed, toggle
+42 
+
+FF 11
+15 00 00 23
+0C
+20 4C 45 44 20 53 57 49 54 43 48 20		-> LED switch pressed, sequences through states
+   L  E  D     S  W  I  T  C  H 
+45  
+
+
+FF 13
+15 00 14 05
+0E
+20 4D 61 6E 75 61 6C 20 6D 6F 64 65 20 20	-> status report
+    M a  n  u  a  l     m  o  d  e
+33 
+
+
+FF 13
+15 00 14 05
+0E
+20 47 50 53 20 48 6F 6C 64 20 20 20 20 20	-> left switch up 
+   G  P  S     H  o  l  d
+41
+
+
+FF 13
+15 00 14 05
+0E
+20 41 6C 74 69 74 75 64 65 20 48 6F 6C 64	-> left switch down
+   A  l  t  i  t  u  d  e     H  o  l  d
+15 
+
+
+FF 13
+15 00 14 05
+0E
+20 46 6F 6C 6C 6F 77 20 4D 6F 64 65 20 20	-> status report 
+   F  o  l  l  o  w     M  o  d  e
+18 
+
+
+FF 13
+15 00 14 05
+0E
+20 52 65 74 75 72 6E 20 48 6F 6D 65 20 20	-> right switch up
+   R  e  t  u  r  n     H  o  m  e
+0F 
+
+
+FF 13
+15 00 00 23
+0E
+20 48 45 41 44 4C 45 53 53 20 4F 4E 20 20	-> left stick pressed, toggle
+   H  E  A  D  L  E  S  S     O  N
+38
+
+
+FF 13
+15 00 00 25
+0E
+20 48 45 41 44 4C 45 53 53 20 4F 46 46 20	-> left stick pressed toggle
+   H  E  A  D  L  E  S  S     O  F  F
+50 
+
+
+FF 14
+15 00 01 09
+0F
+43 48  45 43 4B 20 47 59 52 4F 20 53 45 4E 53	
+C  H   E  C  K     G  Y  R  O     S  E  N  S    
+5C
+
+
+
+FF 15
+15 00 01 09
+10
+43 61 6C 69 62 20 43 6F 6D 70 61 73 73 20 31 20
+C  a  l  i  b     C  o  m  p  a  s  s     1
+09 
+
+
+FF 15
+15 00 01 09
+10 
+43 61 6C 69 62 20 43 6F 6D 70 61 73 73 20 32 20
+C  a  l  i  b     C  o  m  p  a  s  s     2 
+0A
+
+
+

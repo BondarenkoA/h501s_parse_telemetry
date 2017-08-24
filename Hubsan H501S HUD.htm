@@ -1,0 +1,154 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+<title>Testing and modifying the Hubsan H501S quadcopter</title>
+</head>
+
+<body vlink="#0000a0" text="#000000" link="#0000ff" bgcolor="#ffff1C" alink="#ff0000">
+
+<!--  background="recbg.jpg" -->
+
+
+
+
+
+<p align="center">
+
+</p><center>
+<h2>HUD, Head Up Display
+<br>
+<br>
+on screen info on the analog FPV goggles output for the Hubsan H501S quadcopter
+<br>
+<br>
+</h2>
+</center>
+
+<center>
+<h2> This project is released under the <a href="http://www.gnu.org/licenses/gpl.html">GPL</a> license</h2>
+</center>
+<br>
+
+<!--
+<H3><center>LATEST</center></H3>
+-->
+
+<center>
+<h3>
+<br>
+I designed and build an on screen character generator that displays on 
+the analog goggles output the info you normally only see on the remote 
+LCD</h3>
+</center>
+<br>
+
+Screen view, all messages are relayed, except tilt and roll, mainly due 
+to limited screen space, and not sure that info helps a lot:
+<br>
+<img src="Hubsan%20H501S%20HUD_files/hud_view_IMG_5976.JPG" alt="hud_view_IMG_5976.JPG">
+<br>
+<br>
+Circuit diagram, I added a 22uF/25 V electrolytic capacitor from the 
+regulator output to ground to reduce LF noise on the supply.
+<br>
+Please note that the circuit is designed for 4 normal AA batteries, if 
+you want to put in 7.4 V or more, then you need a bigger transistor for 
+the BC547 and a heatsink, or better use a switcher,
+<br>
+Note that there exists several package versions of the SAA5281 chip, 
+some have smaller pinout and more pins, and DIFFERENT pin numbering, so 
+check the datasheet,
+<br>
+this is the SOT240-1 DIP 48 version: 
+<br>
+<img src="Hubsan%20H501S%20HUD_files/hud-0.JPG" alt="hud-0.1_circuit_diagram_IMG_5984.JPG">
+<br>
+<br>
+<br>
+Build it, component view.
+<br>
+There is also a hole under the PCB where the power and AFC_RX wires enter the remote.
+<br>
+The little empty sockets are for testing (serial port) and programming the PIC:
+<br>
+<!--
+<img src="HUD_PCB_component_side_IMG_5978.JPG" alt="HUD_PCB_component_side_IMG_5978.JPG">
+-->
+<img src="Hubsan%20H501S%20HUD_files/H501_HUD_PCB_in_box_IMG_5993.JPG" alt="H501_HUD_PCB_in_box_IMG_5993.JPG">
+<br>
+<br>
+<br>
+Wiring side, note the small SMD components:
+<br>
+<img src="Hubsan%20H501S%20HUD_files/H501S_HUD_PCB_wiring_side_IMG_5994.JPG" alt="H501S_HUD_PCB_wiring_side_IMG_5994.JPG">
+<br>
+<br>
+<br>
+I mounted it on the left side of the remote control, the switch powers 
+it, or switches it off, when switched off it shows the normal analog 
+output without info:
+<br>
+<img src="Hubsan%20H501S%20HUD_files/H501S_HUD_box_on_side_remote_IMG_6005.JPG" alt="H501S_HUD_box_on_side_remote_IMG_6005.JPG">
+<br>
+<br>
+<br>
+This shows the connection made  to the remote controller, note I use 
+ground from the battery - point (brown wire), and take the + after the 
+on/off switch (yellow wire).
+<br>
+The remote AFC_RX testpoint feeds into the box via a series resistor, to protect the remote against shorts (grey wire).
+<br>
+There are some more wires, and the little board at the bottom is the  <a href="http://panteltje.com/panteltje/quadcopter/index.html"> auto pilot</a>, it is still being modified as I want to add a drop command,
+<br>
+for that I use the LED switch, and the transistor next to the AFC_RX 
+point connects with wires to the other side of the board to the LED 
+switch,
+<br>
+more about that later when I got all parts in:
+<br>
+<img src="Hubsan%20H501S%20HUD_files/H501S_HUD_box_connections_to_remote_IMG_6001.JPG" alt="H501S_HUD_box_connections_to_remote_IMG_6001.JPG">
+
+
+<br>
+<br>
+<br>
+Current consumption is about 75 mA, powered from the remote controller batteries.
+<br>
+It would be easy to make a PCB for this.
+<br>
+<br>
+<br>
+<br>
+The asm code for Microchip PIC18F14K22, this is NOT for MPlab, I use gpasm in Linux:
+<br>
+<a href="http://panteltje.com/panteltje/quadcopter/hud-0.1.asm">hud-0.1.asm</a>
+<br>
+And for those who cannot assemble it, here the hex file:
+<br>
+<a href="http://panteltje.com/panteltje/quadcopter/hud-0.1.hex">hud-0.1.hex</a>
+<br>
+<br>
+In version 0.2 I changed some positions on screen to accomodate the Quanum V2 FPV headset:
+<br>
+<a href="http://panteltje.com/panteltje/quadcopter/hud-0.2.asm">hud-0.2.asm</a>
+<br>
+And for those who cannot assemble it, here the hex file:
+<br>
+<a href="http://panteltje.com/panteltje/quadcopter/hud-0.2.hex">hud-0.2.hex</a>
+<br>
+<br>
+<br>
+Note on the asm,
+<br>
+there are a number of defines at the start of the source file,
+<br< main="" of="" interest="" to="" user="" is="" '#define="" full_gps',="" comment="" this="" out="" if="" you="" only="" want="" the="" number="" satellites="" displayed,="" then="" re-assemble="" and="" re-program="" pic.="" <br="">
+With only the number of satellites for remote and drone displayed more screen area is visible for flying.
+<br>
+And you only need that info to make sure you have enough sats for GPS, the exact location is usually known.
+<br>
+<br>
+<br>
+<a href="http://panteltje.com/index1.html">return to main page</a>
+
+
+
+</br<></body></html>

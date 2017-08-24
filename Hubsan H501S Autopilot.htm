@@ -1,0 +1,531 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+<title>Testing and modifying the Hubsan H501S quadcopter</title>
+</head>
+
+<body vlink="#0000a0" text="#000000" link="#0000ff" bgcolor="#ffff1C" alink="#ff0000">
+
+<!--  background="recbg.jpg" -->
+
+
+
+
+
+<p align="center">
+
+</p><center>
+<h2>Testing and modifying the Hubsan H501S quadcopter
+<br>
+<br>
+</h2>
+</center>
+
+<center>
+<h2> This project is released under the <a href="http://www.gnu.org/licenses/gpl.html">GPL</a> license</h2>
+</center>
+<br>
+
+<img src="Hubsan%20H501S%20Autopilot_files/h501s_jan_1_2017_fireworks_1_cut.png" alt="h501s_jan_1_2017_fireworks_1_cut.png">
+
+
+<h3><center>LATEST</center></h3>
+
+<center><a href="http://panteltje.com/panteltje/quadcopter/drop.html">load dropping system activated when LED is switched on</a></center>
+<br>
+
+<center><a href="http://panteltje.com/panteltje/quadcopter/hud.html">HUD circuit diagram and software now available</a></center>
+<br>
+<center><a href="http://panteltje.com/panteltje/quadcopter/hsign.html">sky text in color!</a></center>
+
+<center><h3> Auto pilot with latitude, longitude, and altitude working</h3></center>
+
+gpss auto pilot code for Microchip PIC18F14K22:
+<br>
+<a href="http://panteltje.com/panteltje/quadcopter/gpss-0.5.asm">gpss-0.5.asm</a>
+<br>
+And for those who cannot assemble it, here the hex file:
+<br>
+<a href="http://panteltje.com/panteltje/quadcopter/gpss-0.5.hex">gpss-0.5.hex</a>
+<br>
+<br>
+See below for circuit diagram.
+<br>
+<br>
+Note:
+<br>
+This version does not support negative altitudes,
+<br>
+so if you start on top of a mountain and want to fly down into the valley, it wont work.
+<br>
+
+Uses one wire from the AFC_RX test point, one to the throttle, and one 
+to the LED switch (with local transistor on remote board).
+<br>
+<br>
+Seems to work 100% so far, there is a very slight movement when a next waypoint is found.
+<br>
+I made the code so it will first fly to the requested altitude for a waypoint, and only then move towards that waypoint.
+<br>
+This to avoid obstacles.
+<br>
+In the code is a also a vertical speed limit, but I deactivated that for now as it had the tendency to do a really soft landing,
+<br>
+it is difficult to write this code because it is not a normal PID loop, 
+but sort of overriding the normal drone control in follow me mode.
+<br>
+So I wrote it a bit like I would fly, move the throttle for altitude it 
+is an 'I' (integral) controller so it slowly starts to nullify altitude 
+errors.
+<br>
+The main thing with  V speed speed limit is that if you go down from say
+ 100 meters to 1 meter will it be so fast that it digs a hole?
+<br>
+There are a number of defines at the start of the asm code you can use to set this maximum speed too, so....
+<br>
+And use at your own risk.
+<br>
+Great, apart from the V speed limit, cool it worked for the first time.
+<br>
+Wrote it last week but had to wait for a bit if decent weather, only 
+no-rain for some hours was today, great, almost forgot the code... :-)
+<br>
+I added a NPN-PNP buffer (2 transistors), and some resistors to limit the effect on the throttle,
+<br>
+the 3k3 is the limit, the 680 Ohm mainly short circuit protection.
+<br>
+With all those wires dangling from the remote, the resistors _in_ the 
+remote protect that, and the 680 Ohm in the control board protects that.
+<br>
+So, anyways decoding the AFC_RX testpoint altitude now works in asm ...
+<br>
+This all needs more testing but cannot hope for a better altitude control, this _is_ perfect.
+<br>
+<br>
+<br>
+ 
+
+
+<center> <h3> Auto pilot flight test 100 % successful</h3> </center>
+
+
+ <h4><center>did some programming and hardware design using a PIC 18F14K22 and a CMOS switch</center></h4>
+
+<h4>update</h4>
+
+Thoughts about next version
+<br>
+I think I solved how to also control the altitude from the SDcard.
+<br>
+Some scoping of the motor speed control (left stick up down) of the 
+remote shows it is just a simple potmeter outputting a DC voltage of 0 
+to 3.3 V. 
+<br>
+As there is real altitude feedback of the drone on the remote AFC_RX test point,
+<br>
+we can set up a loop to compare drone altitude to the altitude for each 
+waypoint specified on the SDcard, so control the altitude it flies to 
+each waypoint.
+<br>
+This would be cool, the serial input of this PIC is free to be used for 
+AFC_RX, and it has a DAC output that can do 0- 3.3 V and can be fed via 
+some attenuator to the left stick.
+<br>
+Only 4 more wires to this board? inputs: AFC_RX, AFC_TX, outputs: left stick up / down, LED switch (drop control). 
+<br>
+Gotta try this! (and that code can be used for HUD anyways).
+<br>
+I now will reserve 2 bytes for altitude and 1 byte for 'commands' as the
+ last 3 bytes of each SDcard sector, altitude in dm, so max 6553.5 
+meters should be enough...
+<br>
+This allows the drone to land at a specified longitude and latitude too,
+ fly a stealth pattern below radar, etc etc.. deliver things, pick up 
+things..
+<br>
+In the end why not get rid of the radio link altogether, and replace the
+ 2.4 GHz transceiver module in the drone with this circuit, and emulate 
+its i2c communication, its already been hacked by others.
+<br>
+That way no radio link issues... :-) hard to jam, OK you can still jam GPS, how about inertial OK... ;-)
+<br>
+<br>
+
+So :-), just wrote some C test code to extract the altitude info from 
+the remote AFC_RX testpoint into a variable, it does a checksum check 
+too (cracked that), seems to work fine even without using the AFC_TX 
+testpoint,
+<br>
+so maybe only need 3 wires....
+<br>
+<a href="http://panteltje.com/panteltje/quadcopter/find_altitude.c">find_altitude.c</a>
+<br>
+Instructions are in the file, this is proto test code, and will be used 
+by me to write the PIC asm, but should work on Raspi too, works even on 
+my 64 bit Linux laptop..
+<br>
+The same coding method can be used to get all other info, say for HUD, from AFC_RX, see this <a href="http://panteltje.com/panteltje/quadcopter/remote_testpoint_AFC_RX_decode_key.txt">remote_testpoint_AFC_RX_decode_key.txt</a> AFC_RX data analysis from a binary dump.
+<br>
+I decided to use a 'mode' variable, a 'state machine' and not a whole 
+lot of buffer space, as the PIC I use has little memory space.
+<br>
+<br>
+<br>
+Also wrote <a href="http://panteltje.com/panteltje/quadcopter/fly_waypoints-0.4.tgz">fly_waypoints-0.4.tgz</a>
+<br>
+This is a program written in C for the Linux operating system to write 
+to an old SDcard from a text file waypoints.dat that has lines with 
+latitude and longitude for each point you want the drone to go,
+<br>
+you can also specify the speed towards that point in km/h.
+<br>
+<br>
+Need not be a huge card, a very old one of 32 MB (yes Mega Byte, not Giga Byte) will do.
+<br>
+Note that I use no file system, just one sector per GPS data blob, one 
+sector every 200 ms (5 Hz), so ALL other data on that card will be 
+DESTROYED, back it up first!.
+<br>
+And  make sure you do NOT write to an existing hard-disk, sda or hda for
+ example, or if you have more than one disk sdb .. etc etc
+<br>
+<br>
+Edit the provided waypoints.dat in the tgz archive for YOUR longitude 
+and latitude and what you want the drone to do, and fill the card, see 
+instructions in README.
+<br>
+You can get latitude and longitude from google maps, right click 'what is here'.
+<br>
+<br>
+To read the card and then send the data to the Hubsan H501S remote, 
+<br>
+
+<br>
+I designed a small Microchip PIC based card reader for this project with
+ an electronic switch that can automatically select between normal GPS 
+from the remote and GPS data from the SDcard:
+<br>
+<img src="Hubsan%20H501S%20Autopilot_files/H501S_remote_GPS_generator_auto_pilot_IMG_6061.JPG" alt="H501S_remote_GPS_generator_auto_pilot_IMG_6061.JPG">
+<br>
+<br>
+
+Build it, top view:
+<br>
+<img src="Hubsan%20H501S%20Autopilot_files/gpss-0_003.JPG" alt="gpss-0.3_PCB_top_IMG_5937.JPG">
+<br>
+<br>
+bottom view:
+<img src="Hubsan%20H501S%20Autopilot_files/gpss_PCB_bottom_IMG_5869.JPG" alt="gpss_PCB_bottom_IMG_5869.JPG">
+<br>
+<br>
+
+Mounted with Scotch double sided tape for a test run, pressing the white
+ button for one second activates flying the pattern recorded on the SD 
+card:
+<br>
+<img src="Hubsan%20H501S%20Autopilot_files/gpss-0_002.JPG" alt="gpss-0.3_board_connected_to_remote_IMG_5934.JPG">
+<br>
+<br>
+
+This is the wiring _in_ the remote to the gpss-0.3 board:
+<br>
+<img src="Hubsan%20H501S%20Autopilot_files/gpss-0.JPG" alt="gpss-0.3_wiring_to_remote_IMG_5935.JPG">
+
+<br>
+<br>
+
+
+The GPS in the remote does 5 updates per second, so for 30 minutes 
+flight time you need 30 * 60 * 5 = 9000 sectors, or 4.5 MB, any early 
+small card will do,
+<br>
+however this gpss-0.1.asm only supports card sizes up to 1 or 2 GB (bigger ones have a different sector size IIRC).
+<br>
+
+<br>
+Connect the unit in the remote between the GPS and the board, the signal from the board to the GPS should be left,
+<br>
+cut the data wire from the GPS to the board then link it via this gpss 
+module, and use the supply +5 V and ground to supply the gpss board.
+<br>
+The gpss board has its own 3.3 V low dropout regulator for the card.
+<br>
+
+<br>
+Now insert the card in the unit.
+<br>
+Switch on the remote, it should show normal GPS.
+<br>
+The green LED on the gpss board should light up.
+<br>
+To start sending the fake data, press the button on the gpss board for at least one second.
+<br>
+The green LED will go out and the red LED will flash each time a sector with fake GPS data is transmitted to the remote,
+<br>
+use follow me mode...
+<br>
+Pressing the button on the gpss board again for more than 1 second will halt transmission and switch back to normal GPS.
+<br>
+Both the red LED and the green LED will be on.
+<br>
+Pressing the button again will continue where it was on the card.
+<br>
+If end of data is reached (a sector starting with a zero on the card) 
+then the red LED will go off, and the green LED will be on,
+<br>
+and control is again given to the normal GPS.
+<br>
+
+<br>
+This is really for electronics guys and programmers who want to experiment with this sort of thing.
+<br>
+This is NOT a turn key solution, just an idea I am testing (one of many).
+<br>
+You need to be able to program in C, build electronics with SMD components, know about voltages and how to connect things,
+<br>
+else things will for sure be damaged.
+<br>
+
+<br>
+I am using the PIC, not a Raspberry Pi for example, because of size, low power consumption, zero boot time,
+<br>
+and because the idea is also to try this in the drone and add something to latitude and longitude.
+<br>
+or just rewrite the whole drone system...
+<br>
+This PIC because I already wrote all that code, it is just old code adapted for this.
+<br>
+And this fake GPS generator may come in handy for other purposes.
+
+<br>
+Thing still needs to be tested in flight, has to wait because I am 
+modifying the drone itself now, works on the remote though, see youtube 
+video below.
+<br>
+<br>
+<br>
+
+<br>
+<h4><center>OLDER</center></h4>
+<br>
+Wrote some code to make a spoof GPS signal, one that moves north then 
+south and then north again, output by default to /dev/ttyUSB0
+<br>
+<a href="http://panteltje.com/pub/create_waypoints_first_test_north_south_north_OK.c">click here to download the C code (for Linux)</a> 
+<br>
+<br>
+Using an ebay USB to serial adaptor connected to the Hubsan remote controller GPS input:
+<br>
+<img src="Hubsan%20H501S%20Autopilot_files/hubsan_H501S_GPS_spoof_connection_IMG_5852.JPG" alt="hubsan_H501S_GPS_spoof_connection_IMG_5852.JPG">
+<br>
+and running the code on the laptop, has the remote accept the fake GPS signal generated:
+<br>
+<img src="Hubsan%20H501S%20Autopilot_files/hubsan_H501S_spoof_GPS_signaI_accepted_MG_5850.JPG" alt="signal accepted">
+<br>
+<br>
+when the program runs, the location of the remote changes, although it sits on the table next to the laptop here:
+<br>
+<iframe src="//www.youtube.com/embed/bYwYC43vy5M" allowfullscreen="" width="420" height="315" frameborder="0"></iframe>
+<br>
+<br>
+program also outputs to stdout:
+<br>
+<img src="Hubsan%20H501S%20Autopilot_files/north_and_south_we_go_IMG_5848.JPG" alt="program also outputs to stdout">
+<br>
+
+<br>
+<h4><center>AND BEFORE ALL THAT</center></h4>
+<br>
+Hi,
+<br>
+bought a Hubsan 501S from China.
+<br>
+I am in the Netherlands.
+<br>
+Did some flying here:
+<br>
+<img src="Hubsan%20H501S%20Autopilot_files/the_village_180_degrees.png" alt="the_village_180_degrees.png">
+<br>
+great quadcopter!
+<br>
+There was a lot of wind (force 4) and even the pictures are great.
+<br>
+<br>
+Had some trouble reading that display in the sun though.
+<br>
+<br>
+Now I am in electronics, so have already many plans to mu^Hodify things...
+<br>
+<br>
+<br>
+One thing I wanted to add is multiple waypoints.
+<br>
+Now disassembling that ST ARM processor.. well I already wrote a binary to C converter for an other processor once,
+<br>
+you do everything only once in your life or should...
+<br>
+So then I thought how about fooling the on board GPS by adding a PIC microprocessor and simply adding some values 
+<br>
+to latitude and longitude.
+<br>
+<br>
+Curious, needed to know the GPS module baudrate, the NMEA sentences used for that, OK, setup a wiretap:
+<br>
+<img src="Hubsan%20H501S%20Autopilot_files/hubsan_501S_tapping_the_quadcopter_GPS_module_IMG_5840.JPG" alt="hubsan_501S_tapping_the_quadcopter_GPS_module_IMG_5840.JPG">
+<br>
+just using an ebay USB to serial module.
+<br>
+<br>
+<br>
+closeup:
+<br>
+<img src="Hubsan%20H501S%20Autopilot_files/hubsan_501S_what_does_the_GPS_use_wiretap_IMG_5838.JPG" alt="hubsan_501S_what_does_the_GPS_use_wiretap_IMG_5838.JPG">
+<br>
+<br>
+Now there was a surprise:
+<br>
+<br>
+<br>
+quadcopter GPS connector pinout:
+<br>
+black	blue	white	red	
+<br>
+0		0		0		0
+<br>
+IN?		out		GND		+
+<br>
+The GPS module in the remote control has the colors exactly reversed...
+<br>
+<br>
+<br>
+Measured:
+<br>
+bit time ~18 uS -&gt; 57600 Bd
+<br>
+<br>
+<br>
+NMEA sentences logged with 6 or 7 sats reported:
+<br>
+<br>
+GPS module in quadcopter seems to use GLONASS (the Russian system)?
+<br>
+Multiple sources like GPS plus BEIDOU and or GLONASS is signaled by 'GNRMC' versus 'GPRMC' for GPS only.
+<br>
+<br>
+<br>
+GPS module in quadcopter seems to use multiple sources.
+<br>
+_______________________________________________
+<br>
+<br>
+$GNRMC,075549.60,A,5311.40200,N,00524.03001,E,0.066,,051016,,,A
+            &lt;- position GLONASS
+<br>
+$GNGGA,075549.60,5311.40200,N,00524.03001,E,1,07,1.59,9.1,M,45.7,M,,        &lt;- position GLONASS
+<br>
+$GPGSV,3,1,10,05,10,029,,07,02,341,,16,59,294,19,18,21,140,36
+<br>
+$GPGSV,3,2,10,20,33,080,20,21,70,105,29,26,74,216,33,27,30,271,
+<br>
+$GPGSV,3,3,10,29,24,084,22,31,13,203,11*78
+<br>
+$GLGSV,2,1,07,70,02,352,,71,23,036,20,72,21,090,25,77,26,189,20
+<br>
+$GLGSV,2,2,07,78,60,258,,79,37,321,,81,16,253,
+<br>
+<br>
+<br>
+OK, repeat procedure for GPS module in remote controller:
+<br>
+<br>
+<br>
+GPS module in remote seems to use GPS only:
+<br>
+______________________________________
+<br>
+<br>
+$GPRMC,101752.60,A,5311.40200,N,00524.03001,E,0.267,,051016,,,D            &lt;- position GPS
+<br>
+$GPGGA,101752.60,5311.40200,N,00524.03001,E,2,07,1.28,-6.6,M,45.7,M,,0000  &lt;- position GPS
+<br>
+$GPGSV,4,1,15,01,02,248,,07,12,289,18,08,51,293,27,10,57,128,29
+<br>
+$GPGSV,4,2,15,11,15,266,,13,04,007,,15,11,035,,16,36,190,28
+<br>
+$GPGSV,4,3,15,18,45,070,30,20,00,036,,21,19,072,19,26,11,176,25
+<br>
+$GPGSV,4,4,15,27,85,160,19,30,12,317,,33,26,206,
+<br>
+<br>
+<br>
+OK, well sending fake data with for example a Raspberry Pi to the remote's GPS input should be no problem, using follow me mode
+<br>
+it should follow those NMEA sentences like a dog a bone. :-)
+<br>
+Then the drone can be left unmodified.
+<br>
+<br>
+<br>
+The other thing I want to do is connect one of my Sony starlight 0.001 Lux night vision cameras to that 5.8 GHz board.
+<br>
+However every freaking connecter is glued, could not even get those of...
+<br>
+<br>
+Considered cutting the bottom of the drone, but looks too nice,
+<br>
+So one day I will have to gather enough courage to pull those connectors apart
+<br>
+<center>Update...I have now half the connectors disconnected on the main board.</center>
+<br>
+so I can find the analog point on that camera board, and add a video switch controlled perhaps by the LED control..
+<br>
+Hey just had it a few days, just starting ;-)
+<br>
+<br>
+I did some testing on the lipo charger cell balancing unit (says 12V in 800 mA out).
+<br>
+I think you should not connect that to your car cigarette lighter... (also 12V).
+<br>
+Hubsan should provide a better charger.
+<br>
+Else wheels on fire?
+<br>
+I charge the batteries with it with a lab supply with current limit set to 1 A here,
+<br>
+should not you stop charging Lipos at 4.2 V per cell? Well it did not.
+<br>
+<br>
+<br>
+
+<!--
+<img src="" alt="">
+<br>
+<br>
+<br>
+<A href=""></a>
+-->
+
+<!--
+<HR>
+</P>
+<h4>Download</h4>
+Full sources in C:
+<br>
+Note: This is GPL Linux software, also if you download this file use right mouse 'save as', else you get a messed up screen,
+<br>
+<A href="CHANGES">CHANGES</a>
+<br>
+<br>
+<A href=""></a>
+<br>
+<br>
+<br>
+<HR>
+-->
+
+
+<br>
+<a href="http://panteltje.com/index1.html">return to main page</a>
+
+
+
+</body></html>
